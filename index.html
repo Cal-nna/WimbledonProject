@@ -1,10 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <link href="styles/style.css" rel="stylesheet" type="text/css"/>
+    <meta charset="UTF-8">
+    <title></title>
 </head>
+
+<script> //temp script
+function loadMap()
+{
+    // These constants must start at 0
+    // These constants must match the data layout in the 'locations' array below
+    const CONTENT = 0,
+        LATITUDE = 1,
+        LONGITUDE = 2
+
+    let infoWindow = new google.maps.InfoWindow()
+    let dkitContent = `<div id=dkitContent>
+                           <h1>Dkit</h1>
+                           <div id=content>
+                           <img src = https://www.dkit.ie/assets/uploads/images/About_campus_585x300.jpg>
+                           <p>Desc</p>
+                           <p>check da website<br><a href=https://www.dkit.ie>www.dkit.ie</a></p>
+                           </div>
+                           </div>`
+    let locations = [
+        [dkitContent, 53.98485693, -6.39410164],
+        ["Dundalk", 54.00428271, -6.40210535],
+        ["Blackrock", 53.96251869, -6.36627104]
+    ]
+    let map = new google.maps.Map(document.getElementById("map"), {
+        mapId: "MY_MAP_ID",
+        zoom: 17,
+        center: new google.maps.LatLng(locations[0][LATITUDE], locations[0][LONGITUDE]),
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        //points of interest code
+        mapTypeControlOptions: {
+            mapTypeIds: ["roadmap", "satellite", "hide_poi"]
+        },
+        // disableDefaultUI: true //chatgpt
+    })
+
+    let services_centre_location = {lat: 54.00428271, lng: -6.40210535} //view services in specific
+
+    let service = new google.maps.places.PlacesService(map) //view specific srervices
+
+    service.nearbySearch({
+        location: services_centre_location, // centre of the search
+        radius: 500, // radius (in metres) of the search
+        type: "cafe"
+    }, getNearbyServicesMarkers)
+
+    function getNearbyServicesMarkers(results, status)
+    {
+        if (status === google.maps.places.PlacesServiceStatus.OK)
+        {
+            results.forEach(result =>
+            {
+                createMarker(result)
+            })
+        }
+    }
+
+    //points of interest code
+    hidePointsOfInterest(map)
+
+    function createMarker(place) { //MARKER START
+        if (!place.geometry || !place.geometry.location) return;
+
+        // Replace the default icon with your custom latte image
+        let icon = {
+            url: place.icon,
+            scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
+            origin: new google.maps.Point(0, 0), // Origin
+            anchor: new google.maps.Point(15, 15) // Anchor (center of image)
+        };
+
+        let marker = new google.maps.marker.AdvancedMarkerElement({
+            map: map,
+            position: place.geometry.location,
+            content: document.createElement("img") // Create empty img element
+        });
+
+        // Set the custom icon
+        marker.content.src = icon.url;
+        marker.content.style.width = icon.scaledSize.width + 'px';
+        marker.content.style.height = icon.scaledSize.height + 'px';
+
+        if (infoWindow === null) {
+            infoWindow = new google.maps.InfoWindow();
+        }
+
+        google.maps.event.addListener(marker, "click", () => {
+            infoWindow.setContent(place.name);
+            infoWindow.open(map, marker);
+        });
+    }//MARKER END
+
+
+
+    locations.forEach(location =>
+    {
+        let marker = new google.maps.marker.AdvancedMarkerElement({
+            position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
+            map: map
+        })
+
+        google.maps.event.addListener(marker, "click", () =>
+        {
+            infoWindow.setContent(location[CONTENT])
+            infoWindow.open(map, marker)
+        })
+    })
+
+    map.addListener('click', (mapsMouseEvent) => {
+        console.log("mapsMouseEvent")
+        let latLng = mapsMouseEvent.latLng.toJSON()
+        services_centre_location = latLng
+
+        service.nearbySearch({
+            location: latLng, // centre of the search
+            radius: 1000, // radius (in metres) of the search
+            type: "school"
+        }, getNearbyServicesMarkers)
+
+        map.setZoom(15)
+        map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng))
+    })
+
+    // Remove these redundant lines as we already have listeners for each marker
+    // if(infoWindow === null)
+    // {
+    //     infoWindow = new google.maps.InfoWindow()
+    // }
+    //
+    // google.maps.event.addListener(marker, "click", () =>
+    // {
+    //     infoWindow.setContent("DkIT")
+    //     infoWindow.open(map, marker)
+    // })
+}
+
+//poi code
+function hidePointsOfInterest(map)
+{
+    let styles = [
+        {
+            "featureType": "poi",
+            "stylers": [{"visibility": "off"}]
+        },
+        {
+            "featureType": "transit",
+            "stylers": [{"visibility": "off"}]
+        }
+    ]
+
+    let styledMapType = new google.maps.StyledMapType(styles, {name: "POI Hidden", alt: "Hide Points of Interest"})
+    map.mapTypes.set("hide_poi", styledMapType)
+
+    map.setMapTypeId("hide_poi")
+}
+</script>
+
 <body>
-$END$
+<div id="header">
+    text go here for header
+</div>
+
+<div id="content">
+    text go here for Content
+</div>
+<div id=map></div>
+
+<!-- Google Maps -->
+<script src=https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker,places></script>
+<div id="footer">
+    text go here for footer
+</div>
 </body>
 </html>

@@ -1,0 +1,55 @@
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#header {
+  background-color: green;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#footer {
+  background-color: green;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: auto; // pushes footer to bottom
+}
+
+#content {
+  text-align: center;
+  padding: 20px;
+}
+
+//TEMP CHANGE LATER - derek notes
+#map {
+  width: 600px;
+  height: 600px;
+  border: thin solid #ccc;
+  margin: 20px 0;
+}
+
+#dkitContent {
+  width: 200px;
+  height: 300px;
+
+  img {
+    clear: both;
+    float: left;
+    width: 150px;
+    border-radius: 100px;
+    margin: 20px;
+    margin-top: 0px;
+    border: thin solid red;
+  }
+}
