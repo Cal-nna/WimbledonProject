@@ -8,138 +8,263 @@
 </head>
 
 <script> //temp script
-function loadMap()
-{
-    // These constants must start at 0
-    // These constants must match the data layout in the 'locations' array below
+let map = null;
+let directionsRenderer = null        // Reference to the Google Map
+let infoWindow = null;
+let service = null;
+// let latLng = {lat: 53.982831399999995, lng: -6.3904702414678916}; // Default to DKIT location
+let placeType = "cafe"; // Default place type to search for
+let markers = [];
+function loadMap() {
+    // Constants for array index readability
     const CONTENT = 0,
         LATITUDE = 1,
-        LONGITUDE = 2
+        LONGITUDE = 2;
 
-    let infoWindow = new google.maps.InfoWindow()
-    let dkitContent = `<div id=dkitContent>
-                           <h1>Dkit</h1>
-                           <div id=content>
-                           <img src = https://www.dkit.ie/assets/uploads/images/About_campus_585x300.jpg>
-                           <p>Desc</p>
-                           <p>check da website<br><a href=https://www.dkit.ie>www.dkit.ie</a></p>
-                           </div>
-                           </div>`
-    let locations = [
-        [dkitContent, 53.98485693, -6.39410164],
-        ["Dundalk", 54.00428271, -6.40210535],
-        ["Blackrock", 53.96251869, -6.36627104]
-    ]
-    let map = new google.maps.Map(document.getElementById("map"), {
+    let servicesCentreLocation = new google.maps.LatLng(51.43394571746091,-0.214533805847168) //view services in specific
+
+
+    // Initialize the Google Map
+    map = new google.maps.Map(document.getElementById("map"), {
         mapId: "MY_MAP_ID",
-        zoom: 17,
-        center: new google.maps.LatLng(locations[0][LATITUDE], locations[0][LONGITUDE]),
+        zoom: 16,  // Zoom level (higher is more zoom)
+        center: servicesCentreLocation,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
-        //points of interest code
         mapTypeControlOptions: {
             mapTypeIds: ["roadmap", "satellite", "hide_poi"]
         },
-        // disableDefaultUI: true //chatgpt
-    })
+        //disableDefaultUI: true // Uncomment to hide map controls
+    });
 
-    let services_centre_location = {lat: 54.00428271, lng: -6.40210535} //view services in specific
+    const startInput = document.getElementById("start");
+    const endInput = document.getElementById("end");
 
-    let service = new google.maps.places.PlacesService(map) //view specific srervices
+// Drop down when searching for locations
+    const startAutocomplete = new google.maps.places.Autocomplete(startInput);
+    const endAutocomplete = new google.maps.places.Autocomplete(endInput);
 
-    service.nearbySearch({
-        location: services_centre_location, // centre of the search
-        radius: 500, // radius (in metres) of the search
-        type: "cafe"
-    }, getNearbyServicesMarkers)
 
-    function getNearbyServicesMarkers(results, status)
-    {
-        if (status === google.maps.places.PlacesServiceStatus.OK)
-        {
-            results.forEach(result =>
-            {
-                createMarker(result)
-            })
-        }
-    }
+    directionsRenderer = new google.maps.DirectionsRenderer()
+    directionsRenderer.setMap(map)
+
+    directionsRenderer.setPanel(document.getElementById("directions"))
+
+    calculateRoute("DRIVING")
+
+
+    // service.nearbySearch({
+    //     location: services_centre_location, // centre of the search
+    //     radius: 500, // radius (in metres) of the search
+    //     type: "cafe"
+    // }, getNearbyServicesMarkers)
+
 
     //points of interest code
     hidePointsOfInterest(map)
 
-    function createMarker(place) { //MARKER START
-        if (!place.geometry || !place.geometry.location) return;
+    service = new google.maps.places.PlacesService(map); //view specific srervices
 
-        // Replace the default icon with your custom latte image
-        let icon = {
-            url: place.icon,
-            scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
-            origin: new google.maps.Point(0, 0), // Origin
-            anchor: new google.maps.Point(15, 15) // Anchor (center of image)
-        };
 
-        let marker = new google.maps.marker.AdvancedMarkerElement({
-            map: map,
-            position: place.geometry.location,
-            content: document.createElement("img") // Create empty img element
+    // function createMarker(place) { //MARKER START
+    //     if (!place.geometry || !place.geometry.location) return;
+    //
+    //     // Replace the default icon with your custom latte image
+    //     let icon = {
+    //         url: place.icon,
+    //         scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
+    //         origin: new google.maps.Point(0, 0), // Origin
+    //         anchor: new google.maps.Point(15, 15) // Anchor (center of image)
+    //     };
+    //
+    //     let marker = new google.maps.marker.AdvancedMarkerElement({
+    //         map: map,
+    //         position: place.geometry.location,
+    //         content: icon // Create empty img element
+    //     });
+    //
+    //     markers.push(marker);
+    //     // // Set the custom icon
+    //     // marker.content.src = icon.url;
+    //     // marker.content.style.width = icon.scaledSize.width + 'px';
+    //     // marker.content.style.height = icon.scaledSize.height + 'px';
+    //
+    //     if (infoWindow === null) {
+    //         infoWindow = new google.maps.InfoWindow();
+    //     }
+    //
+    //     google.maps.event.addListener(marker, "click", () => {
+    //         infoWindow.setContent(place.name);
+    //         infoWindow.open(map, marker);
+    //     });
+    // }//MARKER END
+
+    // service.findPlaceFromQuery({
+    //     query: "RockSalt",  // Search for this specific place
+    //     fields: ["name", "icon", "geometry"]  // What data to return
+    // }, getNearbyServicesMarkers);
+
+    locations.forEach(location => {
+        let marker = new google.maps.Marker({
+            position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
+            map: map
         });
 
-        // Set the custom icon
-        marker.content.src = icon.url;
-        marker.content.style.width = icon.scaledSize.width + 'px';
-        marker.content.style.height = icon.scaledSize.height + 'px';
+        // Initialize info window if not already created
+        if (infoWindow === null) {
+            infoWindow = new google.maps.InfoWindow();
+        }
+
+        // Add click listener to show custom content when marker is clicked
+        google.maps.event.addListener(marker, "click", () => {
+            infoWindow.setContent(location[CONTENT]);
+            infoWindow.open(map, marker);
+        });
+    });
+
+    // Add click listener to show custom content when marker is clicked
+    map.addListener("click", (mapsMouseEvent) => {
+        latLng = mapsMouseEvent.latLng.toJSON();
+        displayNearbyPlaces();
+    });
+
+}
+
+let locations = [];
+
+function loadLocations() {
+    return fetch("locations.json")
+        .then(response => {
+            if (!response.ok) throw new Error("error fetching locations");
+            return response.json();
+        })
+        .then(data => {
+            locations = data.map(loc => [loc.content, loc.lat, loc.lng, loc.icon || null]);
+        })
+        .catch(error => {
+            console.error("Error fetching locations: ", error);
+        });
+}
+loadLocations().then(() => {
+    locations.forEach(location => {
+        const iconUrl = location[3]; // index 3 = icon
+        let markerOptions = {
+            position: new google.maps.LatLng(location[1], location[2]),
+            map: map
+        };
+
+        if (iconUrl) {
+            markerOptions.icon = {
+                url: iconUrl,
+                scaledSize: new google.maps.Size(30, 30)
+            };
+        }
+
+        let marker = new google.maps.Marker(markerOptions);
 
         if (infoWindow === null) {
             infoWindow = new google.maps.InfoWindow();
         }
 
         google.maps.event.addListener(marker, "click", () => {
-            infoWindow.setContent(place.name);
+            infoWindow.setContent(location[0]);
             infoWindow.open(map, marker);
         });
-    }//MARKER END
+    });
+});
 
 
+    function displayNearbyPlaces() {
+    // Clear existing place markers
+    markers.forEach(marker => marker.map = null);
+    markers = [];
 
-    locations.forEach(location =>
+    if (infoWindow !== null) {
+        infoWindow.close();
+    }
+
+    let service = new google.maps.places.PlacesService(map);
+
+    service.nearbySearch({
+        location: latLng,
+        radius: 1000, // 1km radius
+        type: placeType
+    }, getNearbyServicesMarkers);
+
+    // Zoom and pan to the clicked location
+    map.setZoom(15);
+    map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng));
+}
+
+// Callback function for place search results
+function getNearbyServicesMarkers(results, status) {
+    // Only proceed if the search was successful
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+        // Create a marker for each result
+        results.forEach(result => {
+            createPlaceMarker(result);
+        });
+    }
+}
+
+
+function createPlaceMarker(place) {
+    if (!place.geometry || !place.geometry.location) return;
+
+    /* CUSTOM ICON SECTION - REMOVED
+    // Replace the default icon with your custom latte image
+    let icon = {
+        url: "[BASE64 IMAGE DATA WAS HERE]", // Path to your custom icon
+        scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
+        origin: new google.maps.Point(0, 0), // Origin
+        anchor: new google.maps.Point(15, 15) // Anchor (center of image)
+    };
+    */
+
+    // Using default icon from the place result
+    let icon = document.createElement("img");
+    icon.src = place.icon;
+    icon.style.width = "20px";
+    icon.style.height = "20px";
+
+    let marker = new google.maps.Marker({
+        map: map,
+        position: place.geometry.location,
+        icon: {
+            url: place.icon,
+            scaledSize: new google.maps.Size(20, 20)
+        }
+    });
+
+
+    markers.push(marker);
+
+    if (infoWindow === null) {
+        infoWindow = new google.maps.InfoWindow();
+    }
+
+    google.maps.event.addListener(marker, "click", () =>
     {
-        let marker = new google.maps.marker.AdvancedMarkerElement({
-            position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
-            map: map
-        })
-
-        google.maps.event.addListener(marker, "click", () =>
+        let photo = null
+        if (typeof (place.photos) !== "undefined") // there is at least one photo
         {
-            infoWindow.setContent(location[CONTENT])
-            infoWindow.open(map, marker)
-        })
+            photo = place.photos[0].getUrl()
+        }
+
+        request = {
+            placeId: place.place_id,
+            fields: ["name", "formatted_address", "formatted_phone_number", "icon", "geometry"],
+        };
+
+        if (photo !== null)
+        {
+            service.getDetails(request, (placeDetails) => infoWindow.setContent(`<p><strong>${placeDetails.name}</strong><br><img width=100px src="${photo}"><br>${(placeDetails.formatted_address).replaceAll(', ', ',<br>')}</br>${placeDetails.formatted_phone_number?placeDetails.formatted_phone_number:""}</p>`))
+        }
+        else  // no photo
+        {
+            service.getDetails(request, (placeDetails) => infoWindow.setContent(`<p><strong>${placeDetails.name}</strong><br>${(placeDetails.formatted_address).replaceAll(', ', ',<br>')}</br>${placeDetails.formatted_phone_number?placeDetails.formatted_phone_number:""}</p>`))
+        }
+        infoWindow.open(map, marker)
     })
-
-    map.addListener('click', (mapsMouseEvent) => {
-        console.log("mapsMouseEvent")
-        let latLng = mapsMouseEvent.latLng.toJSON()
-        services_centre_location = latLng
-
-        service.nearbySearch({
-            location: latLng, // centre of the search
-            radius: 1000, // radius (in metres) of the search
-            type: "school"
-        }, getNearbyServicesMarkers)
-
-        map.setZoom(15)
-        map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng))
-    })
-
-    // Remove these redundant lines as we already have listeners for each marker
-    // if(infoWindow === null)
-    // {
-    //     infoWindow = new google.maps.InfoWindow()
-    // }
-    //
-    // google.maps.event.addListener(marker, "click", () =>
-    // {
-    //     infoWindow.setContent("DkIT")
-    //     infoWindow.open(map, marker)
-    // })
 }
 
 //poi code
@@ -161,6 +286,47 @@ function hidePointsOfInterest(map)
 
     map.setMapTypeId("hide_poi")
 }
+
+// Function to toggle between cafe and school markers
+function togglePlaceType(type) {
+    placeType = type;
+    if (latLng) {
+        displayNearbyPlaces();
+    }
+}
+
+let elements = document.getElementsByName("placeType");
+
+elements.forEach(element => {
+    if(element.checked){
+        service.nearbySearch({
+            location: latLng,
+            radius: 1000, // 1km radius
+            type: element.value
+        }, getNearbyServicesMarkers)
+    }
+})
+
+
+function calculateRoute(travelMode = "DRIVING")
+{
+    document.getElementById("transport-mode").innerHTML = travelMode
+    let start = document.getElementById("start").value
+    let end = document.getElementById("end").value
+
+    let request = {origin: start,
+        destination: end,
+        travelMode: travelMode}
+
+    directionsService = new google.maps.DirectionsService()
+    directionsService.route(request, (route, status) =>
+    {
+        if (status === google.maps.DirectionsStatus.OK)
+        {
+            directionsRenderer.setDirections(route)
+        }
+    })
+}
 </script>
 
 <body>
@@ -168,13 +334,40 @@ function hidePointsOfInterest(map)
     text go here for header
 </div>
 
+<div id=controlPanel>
+    <span class=selectLocationLabel>Start:</span>
+    <input id=start type=text><br>
+
+    <br>
+    <span class=selectLocationLabel>End:</span>
+    <input id=end type=text>
+
+    <input type=button onclick=calculateRoute() id=submit value=Submit>
+</div>
+
 <div id="content">
-    text go here for Content
+    <div class="placeTypes">
+        <label for="cafe">Cafes:</label>
+        <input name="placeType" id="cafe" type="checkbox" value="cafe" onclick="togglePlaceType('cafe')" checked>
+        <label for="school">Schools:</label>
+        <input name="placeType" id="school" type="checkbox" value="school" onclick="togglePlaceType('school')">
+        <label for="bar">Bars:</label>
+        <input name="placeType" id="bar" type="checkbox" value="bar" onclick="togglePlaceType('bar')">
+    </div>
 </div>
 <div id=map></div>
+<div>
+<!--fix later-->
+    <button><i class=material-icons onclick=calculateRoute("DRIVING")>Car</i></button>
+    <button><i class=material-icons onclick=calculateRoute("TRANSIT")>Bus</i></button>
+    <button><i class=material-icons onclick=calculateRoute("BICYCLING")>Bike</i></button>
+    <button><i class=material-icons onclick=calculateRoute("WALKING")>Walk</i></button>
+</div>
+<h1 id=transport-mode>Driving</h1>
+<!--<details id=directions><summary>Directions</summary></details>-->
 
 <!-- Google Maps -->
-<script src=https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker,places></script>
+<script src=https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker&libraries=places></script>
 <div id="footer">
     text go here for footer
 </div>
