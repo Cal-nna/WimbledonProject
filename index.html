@@ -16,6 +16,11 @@
     let markers = [];
     let locations = [];
     let latLng = null;
+    let placeMarkers = {
+        cafe: [],
+        school: [],
+        bar: []
+    };
 
     // Load Map
     function loadMap() {
@@ -69,7 +74,13 @@
         // Click Listener
         map.addListener("click", (mapsMouseEvent) => {
             latLng = mapsMouseEvent.latLng.toJSON();
-            displayNearbyPlaces();
+
+            // Check which place types are active and display them
+            document.querySelectorAll('.placeTypes input[type="checkbox"]').forEach(checkbox => {
+                if (checkbox.checked) {
+                    togglePlaceType(checkbox.value, true);
+                }
+            });
         });
 
         document.getElementById("closePanel").addEventListener("click", () => {
@@ -120,33 +131,40 @@
     // });
 
     // Toggle Nearby Place Types
-    function togglePlaceType(type) {
-        placeType = type;
-        if (latLng) {
-            displayNearbyPlaces();
+    function togglePlaceType(type, isChecked) {
+        if (isChecked) {
+            if (latLng) {
+                displayNearbyPlaces(type);
+            }
+        } else {
+            clearPlaceMarkers(type);
         }
+    }
+    function clearPlaceMarkers(type) {
+        placeMarkers[type].forEach(marker => {
+            marker.setMap(null);
+        });
+        placeMarkers[type] = [];
     }
 
     // Display Nearby Places
-    function displayNearbyPlaces() {
-        markers.forEach(marker => marker.map = null);
-        markers = [];
-
-        if (infoWindow) {
-            infoWindow.close();
-        }
-
+    function displayNearbyPlaces(type) {
         const service = new google.maps.places.PlacesService(map);
 
         service.nearbySearch({
             location: latLng,
             radius: 1000,
-            type: placeType
-        }, getNearbyServicesMarkers);
-
-        map.setZoom(15);
-        map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng));
+            type: type
+        }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                clearPlaceMarkers(type); // Clear existing markers of this type
+                results.forEach(result => {
+                    createPlaceMarker(result, type);
+                });
+            }
+        });
     }
+
 
     // Callback: Create Nearby Markers
     function getNearbyServicesMarkers(results, status) {
@@ -158,7 +176,7 @@
     }
 
     // Create Place Marker
-    function createPlaceMarker(place) {
+    function createPlaceMarker(place, type) {
         if (!place.geometry || !place.geometry.location) return;
 
         const marker = new google.maps.Marker({
@@ -170,11 +188,7 @@
             }
         });
 
-        markers.push(marker);
-
-        if (!infoWindow) {
-            infoWindow = new google.maps.InfoWindow();
-        }
+        placeMarkers[type].push(marker);
 
         google.maps.event.addListener(marker, "click", () => {
             const request = {
@@ -186,22 +200,19 @@
                 if (status !== google.maps.places.PlacesServiceStatus.OK || !placeDetails) return;
 
                 const content = `
-            <h2>${placeDetails.name}</h2>
-            ${placeDetails.photos?.[0] ? `<img src="${placeDetails.photos[0].getUrl()}" width="100%">` : ""}
-            <p>${placeDetails.formatted_address?.replaceAll(", ", ",<br>") || ""}</p>
-            ${placeDetails.formatted_phone_number ? `<p>${placeDetails.formatted_phone_number}</p>` : ""}
-            ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
-        `;
+                <h2>${placeDetails.name}</h2>
+                ${placeDetails.photos?.[0] ? `<img src="${placeDetails.photos[0].getUrl()}" width="100%">` : ""}
+                <p>${placeDetails.formatted_address?.replaceAll(", ", ",<br>") || ""}</p>
+                ${placeDetails.formatted_phone_number ? `<p>${placeDetails.formatted_phone_number}</p>` : ""}
+                ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
+            `;
 
-                // Display in the side panel
                 const infoPanel = document.getElementById("infoPanel");
                 const infoPanelContent = document.getElementById("infoPanelContent");
                 infoPanelContent.innerHTML = content;
                 infoPanel.classList.add("visible");
             });
         });
-
-
     }
 
     // Hide POIs and Transit Icons
@@ -321,18 +332,24 @@
     <input type=button onclick=calculateRoute() id=submit value=Submit>
 </div>
 
-<div id="content">
-    <div class="placeTypes">
-        <label for="cafe">Cafes:</label>
-        <input name="placeType" id="cafe" type="checkbox" value="cafe" onclick="togglePlaceType('cafe')" checked>
-        <label for="school">Schools:</label>
-        <input name="placeType" id="school" type="checkbox" value="school" onclick="togglePlaceType('school')">
-        <label for="bar">Bars:</label>
-        <input name="placeType" id="bar" type="checkbox" value="bar" onclick="togglePlaceType('bar')">
+<div id="map-container">
+    <div id="map"></div>
+    <div id="map-controls">
+        <div class="placeTypes">
+            <input name="placeType" id="cafe" type="checkbox" value="cafe"
+                   onchange="togglePlaceType('cafe', this.checked)" checked>
+            <label for="cafe">Cafes</label>
+
+            <input name="placeType" id="school" type="checkbox" value="school"
+                   onchange="togglePlaceType('school', this.checked)">
+            <label for="school">Schools</label>
+
+            <input name="placeType" id="bar" type="checkbox" value="bar"
+                   onchange="togglePlaceType('bar', this.checked)">
+            <label for="bar">Bars</label>
+        </div>
     </div>
 </div>
-
-<div id=map></div>
 
 <div id="infoPanel" class="hidden">
     <button id="closePanel">X</button>

@@ -4,7 +4,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 #header {
@@ -31,28 +31,55 @@ body {
   padding: 20px;
 }
 
-//TEMP CHANGE LATER - derek notes
-#map {
+#map-container {
+  position: relative;
   width: 600px;
   height: 600px;
-  border: thin solid #ccc;
   margin: 20px 0;
 }
 
-#dkitContent {
-  width: 200px;
-  height: 300px;
-
-  img {
-    clear: both;
-    float: left;
-    width: 150px;
-    border-radius: 100px;
-    margin: 20px;
-    margin-top: 0px;
-    border: thin solid red;
-  }
+#map-container {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  margin: 20px 0;
 }
+
+#map {
+  width: 100%;
+  height: 100%;
+  border: thin solid #ccc;
+}
+
+#map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.placeTypes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.placeTypes label {
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.placeTypes input[type="checkbox"] {
+  margin-right: 8px;
+}
+
 
 //temp
 #controlPanel
