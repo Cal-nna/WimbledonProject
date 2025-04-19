@@ -7,326 +7,302 @@
     <title></title>
 </head>
 
-<script> //temp script
-let map = null;
-let directionsRenderer = null        // Reference to the Google Map
-let infoWindow = null;
-let service = null;
-// let latLng = {lat: 53.982831399999995, lng: -6.3904702414678916}; // Default to DKIT location
-let placeType = "cafe"; // Default place type to search for
-let markers = [];
-function loadMap() {
-    // Constants for array index readability
-    const CONTENT = 0,
-        LATITUDE = 1,
-        LONGITUDE = 2;
+<script>
+    let map = null;
+    let directionsRenderer = null;
+    let infoWindow = null;
+    let service = null;
+    let placeType = "cafe";
+    let markers = [];
+    let locations = [];
+    let latLng = null;
 
-    let servicesCentreLocation = new google.maps.LatLng(51.43394571746091,-0.214533805847168) //view services in specific
+    // Load Map
+    function loadMap() {
+        const servicesCentreLocation = new google.maps.LatLng(51.43394571746091, -0.214533805847168);
 
+        map = new google.maps.Map(document.getElementById("map"), {
+            mapId: "MY_MAP_ID",
+            zoom: 16,
+            center: servicesCentreLocation,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeControlOptions: {
+                mapTypeIds: ["roadmap", "satellite", "hide_poi"]
+            }
+        });
 
-    // Initialize the Google Map
-    map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "MY_MAP_ID",
-        zoom: 16,  // Zoom level (higher is more zoom)
-        center: servicesCentreLocation,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        mapTypeControlOptions: {
-            mapTypeIds: ["roadmap", "satellite", "hide_poi"]
-        },
-        //disableDefaultUI: true // Uncomment to hide map controls
-    });
+        // Autocomplete Setup
+        const startInput = document.getElementById("start");
+        const endInput = document.getElementById("end");
+        new google.maps.places.Autocomplete(startInput);
+        new google.maps.places.Autocomplete(endInput);
 
-    const startInput = document.getElementById("start");
-    const endInput = document.getElementById("end");
-
-// Drop down when searching for locations
-    const startAutocomplete = new google.maps.places.Autocomplete(startInput);
-    const endAutocomplete = new google.maps.places.Autocomplete(endInput);
-
-
-    directionsRenderer = new google.maps.DirectionsRenderer()
-    directionsRenderer.setMap(map)
-
-    directionsRenderer.setPanel(document.getElementById("directions"))
-
-    calculateRoute("DRIVING")
+        // Directions
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+        directionsRenderer.setPanel(document.getElementById("directions"));
+        calculateRoute("DRIVING");
 
 
-    // service.nearbySearch({
-    //     location: services_centre_location, // centre of the search
-    //     radius: 500, // radius (in metres) of the search
-    //     type: "cafe"
-    // }, getNearbyServicesMarkers)
+        hidePointsOfInterest(map);
 
 
-    //points of interest code
-    hidePointsOfInterest(map)
+        service = new google.maps.places.PlacesService(map);
 
-    service = new google.maps.places.PlacesService(map); //view specific srervices
+        // Load Locations
+        locations.forEach(location => {
+            const marker = new google.maps.Marker({
+                position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
+                map: map
+            });
 
+            if (!infoWindow) {
+                infoWindow = new google.maps.InfoWindow();
+            }
 
-    // function createMarker(place) { //MARKER START
-    //     if (!place.geometry || !place.geometry.location) return;
+            // google.maps.event.addListener(marker, "click", () => {
+            //     infoWindow.setContent(location[CONTENT]);
+            //     infoWindow.open(map, marker);
+            // });
+        });
+
+        // Click Listener
+        map.addListener("click", (mapsMouseEvent) => {
+            latLng = mapsMouseEvent.latLng.toJSON();
+            displayNearbyPlaces();
+        });
+
+        document.getElementById("closePanel").addEventListener("click", () => {
+            document.getElementById("infoPanel").classList.remove("visible");
+        });
+
+    }
+
+    // Load External Locations File
+    function loadLocations() {
+        return fetch("locations.json")
+            .then(response => {
+                if (!response.ok) throw new Error("error fetching locations");
+                return response.json();
+            })
+            .then(data => {
+                locations = data.map(loc => [loc.content, loc.lat, loc.lng, loc.icon || null]);
+            })
+            .catch(error => console.error("Error fetching locations: ", error));
+    }
+
+    // loadLocations().then(() => {
+    //     locations.forEach(location => {
+    //         const iconUrl = location[3];
+    //         const markerOptions = {
+    //             position: new google.maps.LatLng(location[1], location[2]),
+    //             map: map
+    //         };
     //
-    //     // Replace the default icon with your custom latte image
-    //     let icon = {
-    //         url: place.icon,
-    //         scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
-    //         origin: new google.maps.Point(0, 0), // Origin
-    //         anchor: new google.maps.Point(15, 15) // Anchor (center of image)
-    //     };
+    //         if (iconUrl) {
+    //             markerOptions.icon = {
+    //                 url: iconUrl,
+    //                 scaledSize: new google.maps.Size(30, 30)
+    //             };
+    //         }
     //
-    //     let marker = new google.maps.marker.AdvancedMarkerElement({
-    //         map: map,
-    //         position: place.geometry.location,
-    //         content: icon // Create empty img element
+    //         const marker = new google.maps.Marker(markerOptions);
+    //
+    //         if (!infoWindow) {
+    //             infoWindow = new google.maps.InfoWindow();
+    //         }
+    //
+    //         google.maps.event.addListener(marker, "click", () => {
+    //             infoWindow.setContent(location[0]);
+    //             infoWindow.open(map, marker);
+    //         });
     //     });
-    //
-    //     markers.push(marker);
-    //     // // Set the custom icon
-    //     // marker.content.src = icon.url;
-    //     // marker.content.style.width = icon.scaledSize.width + 'px';
-    //     // marker.content.style.height = icon.scaledSize.height + 'px';
-    //
-    //     if (infoWindow === null) {
-    //         infoWindow = new google.maps.InfoWindow();
-    //     }
-    //
-    //     google.maps.event.addListener(marker, "click", () => {
-    //         infoWindow.setContent(place.name);
-    //         infoWindow.open(map, marker);
-    //     });
-    // }//MARKER END
+    // });
 
-    // service.findPlaceFromQuery({
-    //     query: "RockSalt",  // Search for this specific place
-    //     fields: ["name", "icon", "geometry"]  // What data to return
-    // }, getNearbyServicesMarkers);
-
-    locations.forEach(location => {
-        let marker = new google.maps.Marker({
-            position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
-            map: map
-        });
-
-        // Initialize info window if not already created
-        if (infoWindow === null) {
-            infoWindow = new google.maps.InfoWindow();
+    // Toggle Nearby Place Types
+    function togglePlaceType(type) {
+        placeType = type;
+        if (latLng) {
+            displayNearbyPlaces();
         }
+    }
 
-        // Add click listener to show custom content when marker is clicked
-        google.maps.event.addListener(marker, "click", () => {
-            infoWindow.setContent(location[CONTENT]);
-            infoWindow.open(map, marker);
-        });
-    });
-
-    // Add click listener to show custom content when marker is clicked
-    map.addListener("click", (mapsMouseEvent) => {
-        latLng = mapsMouseEvent.latLng.toJSON();
-        displayNearbyPlaces();
-    });
-
-}
-
-let locations = [];
-
-function loadLocations() {
-    return fetch("locations.json")
-        .then(response => {
-            if (!response.ok) throw new Error("error fetching locations");
-            return response.json();
-        })
-        .then(data => {
-            locations = data.map(loc => [loc.content, loc.lat, loc.lng, loc.icon || null]);
-        })
-        .catch(error => {
-            console.error("Error fetching locations: ", error);
-        });
-}
-loadLocations().then(() => {
-    locations.forEach(location => {
-        const iconUrl = location[3]; // index 3 = icon
-        let markerOptions = {
-            position: new google.maps.LatLng(location[1], location[2]),
-            map: map
-        };
-
-        if (iconUrl) {
-            markerOptions.icon = {
-                url: iconUrl,
-                scaledSize: new google.maps.Size(30, 30)
-            };
-        }
-
-        let marker = new google.maps.Marker(markerOptions);
-
-        if (infoWindow === null) {
-            infoWindow = new google.maps.InfoWindow();
-        }
-
-        google.maps.event.addListener(marker, "click", () => {
-            infoWindow.setContent(location[0]);
-            infoWindow.open(map, marker);
-        });
-    });
-});
-
-
+    // Display Nearby Places
     function displayNearbyPlaces() {
-    // Clear existing place markers
-    markers.forEach(marker => marker.map = null);
-    markers = [];
+        markers.forEach(marker => marker.map = null);
+        markers = [];
 
-    if (infoWindow !== null) {
-        infoWindow.close();
-    }
-
-    let service = new google.maps.places.PlacesService(map);
-
-    service.nearbySearch({
-        location: latLng,
-        radius: 1000, // 1km radius
-        type: placeType
-    }, getNearbyServicesMarkers);
-
-    // Zoom and pan to the clicked location
-    map.setZoom(15);
-    map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng));
-}
-
-// Callback function for place search results
-function getNearbyServicesMarkers(results, status) {
-    // Only proceed if the search was successful
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-        // Create a marker for each result
-        results.forEach(result => {
-            createPlaceMarker(result);
-        });
-    }
-}
-
-
-function createPlaceMarker(place) {
-    if (!place.geometry || !place.geometry.location) return;
-
-    /* CUSTOM ICON SECTION - REMOVED
-    // Replace the default icon with your custom latte image
-    let icon = {
-        url: "[BASE64 IMAGE DATA WAS HERE]", // Path to your custom icon
-        scaledSize: new google.maps.Size(30, 30), // Adjust size as needed
-        origin: new google.maps.Point(0, 0), // Origin
-        anchor: new google.maps.Point(15, 15) // Anchor (center of image)
-    };
-    */
-
-    // Using default icon from the place result
-    let icon = document.createElement("img");
-    icon.src = place.icon;
-    icon.style.width = "20px";
-    icon.style.height = "20px";
-
-    let marker = new google.maps.Marker({
-        map: map,
-        position: place.geometry.location,
-        icon: {
-            url: place.icon,
-            scaledSize: new google.maps.Size(20, 20)
-        }
-    });
-
-
-    markers.push(marker);
-
-    if (infoWindow === null) {
-        infoWindow = new google.maps.InfoWindow();
-    }
-
-    google.maps.event.addListener(marker, "click", () =>
-    {
-        let photo = null
-        if (typeof (place.photos) !== "undefined") // there is at least one photo
-        {
-            photo = place.photos[0].getUrl()
+        if (infoWindow) {
+            infoWindow.close();
         }
 
-        request = {
-            placeId: place.place_id,
-            fields: ["name", "formatted_address", "formatted_phone_number", "icon", "geometry"],
-        };
+        const service = new google.maps.places.PlacesService(map);
 
-        if (photo !== null)
-        {
-            service.getDetails(request, (placeDetails) => infoWindow.setContent(`<p><strong>${placeDetails.name}</strong><br><img width=100px src="${photo}"><br>${(placeDetails.formatted_address).replaceAll(', ', ',<br>')}</br>${placeDetails.formatted_phone_number?placeDetails.formatted_phone_number:""}</p>`))
-        }
-        else  // no photo
-        {
-            service.getDetails(request, (placeDetails) => infoWindow.setContent(`<p><strong>${placeDetails.name}</strong><br>${(placeDetails.formatted_address).replaceAll(', ', ',<br>')}</br>${placeDetails.formatted_phone_number?placeDetails.formatted_phone_number:""}</p>`))
-        }
-        infoWindow.open(map, marker)
-    })
-}
-
-//poi code
-function hidePointsOfInterest(map)
-{
-    let styles = [
-        {
-            "featureType": "poi",
-            "stylers": [{"visibility": "off"}]
-        },
-        {
-            "featureType": "transit",
-            "stylers": [{"visibility": "off"}]
-        }
-    ]
-
-    let styledMapType = new google.maps.StyledMapType(styles, {name: "POI Hidden", alt: "Hide Points of Interest"})
-    map.mapTypes.set("hide_poi", styledMapType)
-
-    map.setMapTypeId("hide_poi")
-}
-
-// Function to toggle between cafe and school markers
-function togglePlaceType(type) {
-    placeType = type;
-    if (latLng) {
-        displayNearbyPlaces();
-    }
-}
-
-let elements = document.getElementsByName("placeType");
-
-elements.forEach(element => {
-    if(element.checked){
         service.nearbySearch({
             location: latLng,
-            radius: 1000, // 1km radius
-            type: element.value
-        }, getNearbyServicesMarkers)
+            radius: 1000,
+            type: placeType
+        }, getNearbyServicesMarkers);
+
+        map.setZoom(15);
+        map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng));
     }
-})
 
-
-function calculateRoute(travelMode = "DRIVING")
-{
-    document.getElementById("transport-mode").innerHTML = travelMode
-    let start = document.getElementById("start").value
-    let end = document.getElementById("end").value
-
-    let request = {origin: start,
-        destination: end,
-        travelMode: travelMode}
-
-    directionsService = new google.maps.DirectionsService()
-    directionsService.route(request, (route, status) =>
-    {
-        if (status === google.maps.DirectionsStatus.OK)
-        {
-            directionsRenderer.setDirections(route)
+    // Callback: Create Nearby Markers
+    function getNearbyServicesMarkers(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            results.forEach(result => {
+                createPlaceMarker(result);
+            });
         }
-    })
-}
+    }
+
+    // Create Place Marker
+    function createPlaceMarker(place) {
+        if (!place.geometry || !place.geometry.location) return;
+
+        const marker = new google.maps.Marker({
+            map: map,
+            position: place.geometry.location,
+            icon: {
+                url: place.icon,
+                scaledSize: new google.maps.Size(20, 20)
+            }
+        });
+
+        markers.push(marker);
+
+        if (!infoWindow) {
+            infoWindow = new google.maps.InfoWindow();
+        }
+
+        google.maps.event.addListener(marker, "click", () => {
+            const request = {
+                placeId: place.place_id,
+                fields: ["name", "formatted_address", "formatted_phone_number", "url", "photos"]
+            };
+
+            service.getDetails(request, (placeDetails, status) => {
+                if (status !== google.maps.places.PlacesServiceStatus.OK || !placeDetails) return;
+
+                const content = `
+            <h2>${placeDetails.name}</h2>
+            ${placeDetails.photos?.[0] ? `<img src="${placeDetails.photos[0].getUrl()}" width="100%">` : ""}
+            <p>${placeDetails.formatted_address?.replaceAll(", ", ",<br>") || ""}</p>
+            ${placeDetails.formatted_phone_number ? `<p>${placeDetails.formatted_phone_number}</p>` : ""}
+            ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
+        `;
+
+                // Display in the side panel
+                const infoPanel = document.getElementById("infoPanel");
+                const infoPanelContent = document.getElementById("infoPanelContent");
+                infoPanelContent.innerHTML = content;
+                infoPanel.classList.add("visible");
+            });
+        });
+
+
+    }
+
+    // Hide POIs and Transit Icons
+    function hidePointsOfInterest(map) {
+        const styles = [
+            { featureType: "poi", stylers: [{ visibility: "off" }] },
+            { featureType: "transit", stylers: [{ visibility: "off" }] }
+        ];
+
+        const styledMapType = new google.maps.StyledMapType(styles, {
+            name: "POI Hidden",
+            alt: "Hide Points of Interest"
+        });
+
+        map.mapTypes.set("hide_poi", styledMapType);
+
+        // Listen for map type changes
+        map.addListener('maptypeid_changed', function() {
+            if (map.getMapTypeId() === 'hide_poi') {
+                loadAndShowJsonLocations();
+            } else {
+                clearJsonLocations();
+            }
+        });
+    }
+
+    let jsonLocationMarkers = []; // Store JSON location markers
+
+    function loadAndShowJsonLocations() {
+        // Clear existing markers first
+        clearJsonLocations();
+
+        loadLocations().then(() => {
+            locations.forEach(location => {
+                const iconUrl = location[3];
+                const markerOptions = {
+                    position: new google.maps.LatLng(location[1], location[2]),
+                    map: map
+                };
+
+                if (iconUrl) {
+                    markerOptions.icon = {
+                        url: iconUrl,
+                        scaledSize: new google.maps.Size(30, 30)
+                    };
+                }
+
+                const marker = new google.maps.Marker(markerOptions);
+                jsonLocationMarkers.push(marker);
+
+                if (!infoWindow) {
+                    infoWindow = new google.maps.InfoWindow();
+                }
+
+                google.maps.event.addListener(marker, "click", () => {
+                    const content = `
+        <h2>Location Info</h2>
+        ${location[3] ? `<img width="100%" src="${location[3]}"><br>` : ""}
+        <p>${location[0]}</p>
+    `;
+
+                    document.getElementById("infoPanelContent").innerHTML = content;
+                    document.getElementById("infoPanel").classList.add("visible");
+                });
+
+
+            });
+        });
+    }
+
+    function clearJsonLocations() {
+        jsonLocationMarkers.forEach(marker => marker.setMap(null));
+        jsonLocationMarkers = [];
+    }
+
+    // Calculate Route
+    function calculateRoute(travelMode = "DRIVING") {
+        document.getElementById("transport-mode").innerHTML = travelMode;
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+
+        const request = {
+            origin: start,
+            destination: end,
+            travelMode: travelMode
+        };
+
+        const directionsService = new google.maps.DirectionsService();
+
+        directionsService.route(request, (route, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsRenderer.setDirections(route);
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("closePanelBtn").addEventListener("click", () => {
+            document.getElementById("infoPanel").classList.remove("visible");
+        });
+    });
 </script>
 
 <body>
@@ -355,7 +331,14 @@ function calculateRoute(travelMode = "DRIVING")
         <input name="placeType" id="bar" type="checkbox" value="bar" onclick="togglePlaceType('bar')">
     </div>
 </div>
+
 <div id=map></div>
+
+<div id="infoPanel" class="hidden">
+    <button id="closePanel">X</button>
+    <div id="infoPanelContent"></div>
+</div>
+
 <div>
 <!--fix later-->
     <button><i class=material-icons onclick=calculateRoute("DRIVING")>Car</i></button>

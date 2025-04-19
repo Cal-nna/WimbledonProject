@@ -76,3 +76,30 @@ body {
   display:inline-block;
 }
 
+#infoPanel {
+  position: fixed;
+  top: 0;
+  left: -400px; // hide by default
+  width: 350px;
+  height: 100%;
+  background-color: white;
+  box-shadow: 4px 0 12px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  padding: 20px;
+}
+
+#infoPanel.visible {
+  left: 0;
+}
+
+#closePanelBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
