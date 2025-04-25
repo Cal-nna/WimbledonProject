@@ -4,37 +4,42 @@
 <head>
     <link href="styles/style.css" rel="stylesheet" type="text/css"/>
     <meta charset="UTF-8">
-    <title></title>
+    <title>Wimbledon</title>
 </head>
 
-<script>
+<script  type="text/javascript">
     let map = null;
     let directionsRenderer = null;
     let infoWindow = null;
     let service = null;
-    let placeType = "cafe";
+    let placeType = "restaurant";
     let markers = [];
     let locations = [];
     let latLng = null;
     let placeMarkers = {
-        cafe: [],
-        school: [],
-        bar: []
+        restaurant: [],
+        museum: [],
+        bar: [],
+gas_station: [],
+        hotel: []
     };
 
     // Load Map
     function loadMap() {
         const servicesCentreLocation = new google.maps.LatLng(51.43394571746091, -0.214533805847168);
 
-        map = new google.maps.Map(document.getElementById("map"), {
+        map = new google.maps.Map(document.getElementById("ch_map"), {
             mapId: "MY_MAP_ID",
             zoom: 16,
             center: servicesCentreLocation,
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeId: "hide_poi", // Set to hide_poi by default
             mapTypeControlOptions: {
                 mapTypeIds: ["roadmap", "satellite", "hide_poi"]
             }
         });
+
+        // Initialize directions service
+        directionsService = new google.maps.DirectionsService();
 
         // Autocomplete Setup
         const startInput = document.getElementById("start");
@@ -43,32 +48,27 @@
         new google.maps.places.Autocomplete(endInput);
 
         // Directions
-        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            suppressMarkers: false
+        });
         directionsRenderer.setMap(map);
-        directionsRenderer.setPanel(document.getElementById("directions"));
-        calculateRoute("DRIVING");
-
+        directionsRenderer.setPanel(document.getElementById("ch_directions"));
 
         hidePointsOfInterest(map);
-
+        loadAndShowJsonLocations();
 
         service = new google.maps.places.PlacesService(map);
 
         // Load Locations
         locations.forEach(location => {
             const marker = new google.maps.Marker({
-                position: new google.maps.LatLng(location[LATITUDE], location[LONGITUDE]),
+                position: new google.maps.LatLng(location.lat, location.lng),
                 map: map
             });
 
             if (!infoWindow) {
                 infoWindow = new google.maps.InfoWindow();
             }
-
-            // google.maps.event.addListener(marker, "click", () => {
-            //     infoWindow.setContent(location[CONTENT]);
-            //     infoWindow.open(map, marker);
-            // });
         });
 
         // Click Listener
@@ -82,12 +82,8 @@
                 }
             });
         });
-
-        document.getElementById("closePanel").addEventListener("click", () => {
-            document.getElementById("infoPanel").classList.remove("visible");
-        });
-
     }
+
 
     // Load External Locations File
     function loadLocations() {
@@ -97,7 +93,8 @@
                 return response.json();
             })
             .then(data => {
-                locations = data.map(loc => [loc.content, loc.lat, loc.lng, loc.icon || null]);
+                locations = data; // Store the full objects now
+                return data;
             })
             .catch(error => console.error("Error fetching locations: ", error));
     }
@@ -149,7 +146,20 @@
 
     // Display Nearby Places
     function displayNearbyPlaces(type) {
-        const service = new google.maps.places.PlacesService(map);
+        // ✅ Reuse the global service instance declared above
+        service.nearbySearch({
+            location: latLng,
+            radius: 1000,
+            type: type
+        }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                clearPlaceMarkers(type); // Clear existing markers of this type
+                results.forEach(result => {
+                    createPlaceMarker(result, type); // Call with type!
+                });
+            }
+        });
+
 
         service.nearbySearch({
             location: latLng,
@@ -183,7 +193,7 @@
             map: map,
             position: place.geometry.location,
             icon: {
-                url: place.icon,
+                url: place.icon || "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/restaurant-71.png",
                 scaledSize: new google.maps.Size(20, 20)
             }
         });
@@ -200,19 +210,16 @@
                 if (status !== google.maps.places.PlacesServiceStatus.OK || !placeDetails) return;
 
                 const content = `
-                <h2>${placeDetails.name}</h2>
-                ${placeDetails.photos?.[0] ? `<img src="${placeDetails.photos[0].getUrl()}" width="100%">` : ""}
-                <p>${placeDetails.formatted_address?.replaceAll(", ", ",<br>") || ""}</p>
-                ${placeDetails.formatted_phone_number ? `<p>${placeDetails.formatted_phone_number}</p>` : ""}
-                ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
-            `;
-
-                const infoPanel = document.getElementById("infoPanel");
-                const infoPanelContent = document.getElementById("infoPanelContent");
-                infoPanelContent.innerHTML = content;
-                infoPanel.classList.add("visible");
+            <h2>${placeDetails.name}</h2>
+            ${placeDetails.photos?.[0] ? `<img src="${placeDetails.photos[0].getUrl()}" width="100%">` : ""}
+            <p>${placeDetails.formatted_address?.replaceAll(", ", ",<br>") || ""}</p>
+            ${placeDetails.formatted_phone_number ? `<p>${placeDetails.formatted_phone_number}</p>` : ""}
+            ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
+        `;
+                showInfoPanel(content); // ✅ Use your side panel
             });
         });
+
     }
 
     // Hide POIs and Transit Icons
@@ -223,7 +230,7 @@
         ];
 
         const styledMapType = new google.maps.StyledMapType(styles, {
-            name: "POI Hidden",
+            name: "Wimbledon Map",
             alt: "Hide Points of Interest"
         });
 
@@ -242,46 +249,72 @@
     let jsonLocationMarkers = []; // Store JSON location markers
 
     function loadAndShowJsonLocations() {
-        // Clear existing markers first
         clearJsonLocations();
 
-        loadLocations().then(() => {
-            locations.forEach(location => {
-                const iconUrl = location[3];
-                const markerOptions = {
-                    position: new google.maps.LatLng(location[1], location[2]),
-                    map: map
-                };
+        fetch("locations.json")
+            .then(res => res.json())
+            .then(data => {
+                locations = data;
 
-                if (iconUrl) {
-                    markerOptions.icon = {
-                        url: iconUrl,
-                        scaledSize: new google.maps.Size(30, 30)
-                    };
-                }
+                let centerCourtLocation = null;
+                let centerCourtMarker = null;
 
-                const marker = new google.maps.Marker(markerOptions);
-                jsonLocationMarkers.push(marker);
+                locations.forEach(location => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: location.lat, lng: location.lng },
+                        map: map,
+                        icon: location.icon ? {
+                            url: location.icon,
+                            scaledSize: new google.maps.Size(30, 30)
+                        } : null
+                    });
 
-                if (!infoWindow) {
-                    infoWindow = new google.maps.InfoWindow();
-                }
+                    jsonLocationMarkers.push(marker);
 
-                google.maps.event.addListener(marker, "click", () => {
-                    const content = `
-        <h2>Location Info</h2>
-        ${location[3] ? `<img width="100%" src="${location[3]}"><br>` : ""}
-        <p>${location[0]}</p>
-    `;
+                    google.maps.event.addListener(marker, "click", () => {
+                        if (location.placeId) {
+                            const request = {
+                                placeId: location.placeId,
+                                fields: ["name", "formatted_address", "formatted_phone_number", "url", "photos"]
+                            };
 
-                    document.getElementById("infoPanelContent").innerHTML = content;
-                    document.getElementById("infoPanel").classList.add("visible");
+                            service.getDetails(request, (placeDetails, status) => {
+                                if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+                                    const mergedContent = `
+                                    <h2>${placeDetails.name}</h2>
+                                    ${location.img ? `<img width="100%" src="${location.img}"><br>` : ""}
+                                    <p><strong>Address:</strong><br>${placeDetails.formatted_address?.replaceAll(", ", ",<br>")}</p>
+                                    ${placeDetails.formatted_phone_number ? `<p><strong>Phone:</strong> ${placeDetails.formatted_phone_number}</p>` : ""}
+                                    ${location.content ? `<p>${location.content}</p>` : ""}
+                                    ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
+                                `;
+                                    showInfoPanel(mergedContent);
+                                }
+                            });
+                        } else {
+                            const fallbackContent = `
+                            ${location.img ? `<img width="100%" src="${location.img}"><br>` : ""}
+                            <p>${location.content}</p>
+                        `;
+                            showInfoPanel(fallbackContent);
+                        }
+                    });
+
+                    // Store reference if it's Centre Court
+                    if (location.id === "centerCourt") {
+                        centerCourtLocation = location;
+                        centerCourtMarker = marker;
+                    }
                 });
 
-
+                // After all markers are added, trigger Centre Court popup
+                if (centerCourtMarker && centerCourtLocation) {
+                    google.maps.event.trigger(centerCourtMarker, "click");
+                    map.panTo({ lat: centerCourtLocation.lat, lng: centerCourtLocation.lng });
+                }
             });
-        });
     }
+
 
     function clearJsonLocations() {
         jsonLocationMarkers.forEach(marker => marker.setMap(null));
@@ -309,67 +342,132 @@
         });
     }
 
-    // document.addEventListener("DOMContentLoaded", () => {
-    //     document.getElementById("closePanelBtn").addEventListener("click", () => {
-    //         document.getElementById("infoPanel").classList.remove("visible");
-    //     });
+    document.addEventListener("DOMContentLoaded", () => {
+        const tabButtons = document.querySelectorAll(".ch_tabButton");
+        const tabContents = document.querySelectorAll(".ch_tabContent");
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // Remove "active" from all buttons and hide all tab contents
+                tabButtons.forEach(b => b.classList.remove("active"));
+                tabContents.forEach(tab => tab.classList.remove("visible"));
+
+                // Activate clicked tab
+                btn.classList.add("active");
+                document.getElementById(btn.dataset.tab).classList.add("visible");
+            });
+        });
+    });
+    //
+    // document.getElementById("ch_closePanel").addEventListener("click", () => {
+    //     document.getElementById("ch_infoPanel").classList.remove("visible");
+    //     document.body.classList.remove("panel-open");
     // });
+
+    function showInfoPanel(content) {
+        document.getElementById("ch_infoPanel").classList.add("visible");
+        document.getElementById("ch_infoPanelContent").innerHTML = content;
+        document.body.classList.add("panel-open");
+    }
+
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,fr,de,es,it,ja,zh-CN', // Add more language codes if needed
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'ch_googleTranslateElement');
+    }
+
+    function addWaypoint() {
+        const container = document.getElementById("waypointsContainer");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.classList.add("waypoint");
+        container.appendChild(input);
+        new google.maps.places.Autocomplete(input);
+    }
+
 </script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <body>
-<div id="header">
-    text go here for header
+<div id="ch_header">
+    <a href="index.html">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/b/b9/Wimbledon.svg/800px-Wimbledon.svg.png" alt="Wimbledon Logo">
+    </a>
+    <div id="ch_googleTranslateElement"></div>
 </div>
 
-<div id=controlPanel>
-    <span class=selectLocationLabel>Start:</span>
-    <input id=start type=text><br>
+<div id="ch_mainContent">
+    <div id="ch_infoPanel">
+        <div class="ch_infoPanelTabs">
+            <button class="ch_tabButton active" data-tab="ch_placesTab">Places Info</button>
+            <button class="ch_tabButton" data-tab="ch_directionsTab">Directions</button>
+        </div>
 
-    <br>
-    <span class=selectLocationLabel>End:</span>
-    <input id=end type=text>
+        <div id="ch_placesTab" class="ch_tabContent visible">
+            <div id="ch_infoPanelContent"></div>
+        </div>
 
-    <input type=button onclick=calculateRoute() id=submit value=Submit>
-</div>
+        <div id="ch_directionsTab" class="ch_tabContent">
+            <div id="ch_controlPanel">
+                <span class="ch_selectLocationLabel">Start:</span>
+                <span class="ch_selectLocationLabel">Start:</span>
+                <input id="start" type="text"><br><br>
 
-<div id="map-container">
-    <div id="map"></div>
-    <div id="map-controls">
-        <div class="placeTypes">
-            <input name="placeType" id="cafe" type="checkbox" value="cafe"
-                   onchange="togglePlaceType('cafe', this.checked)" checked>
-            <label for="cafe">Cafes</label>
+                <div id="waypointsContainer"></div>
+                <button type="button" onclick="addWaypoint()">+ Add Stop</button><br><br>
 
-            <input name="placeType" id="school" type="checkbox" value="school"
-                   onchange="togglePlaceType('school', this.checked)">
-            <label for="school">Schools</label>
+                <span class="ch_selectLocationLabel">End:</span>
+                <input id="end" type="text"><br><br>
 
-            <input name="placeType" id="bar" type="checkbox" value="bar"
-                   onchange="togglePlaceType('bar', this.checked)">
-            <label for="bar">Bars</label>
+                <input type="button" onclick="calculateRoute()" id="submit" value="Submit">
+
+            </div>
+            <div>
+                <button><i class="material-icons" onclick="calculateRoute('DRIVING')">Car</i></button>
+                <button><i class="material-icons" onclick="calculateRoute('TRANSIT')">Bus</i></button>
+                <button><i class="material-icons" onclick="calculateRoute('BICYCLING')">Bike</i></button>
+                <button><i class="material-icons" onclick="calculateRoute('WALKING')">Walk</i></button>
+            </div>
+            <h1 id="transport-mode"></h1>
+            <div id="ch_directions"></div>
+        </div>
+    </div>
+
+    <div id="ch_mapContainer">
+        <div id="ch_map"></div>
+        <div id="ch_mapControls">
+            <div class="ch_placeTypes">
+                <input name="placeType" id="restaurant" type="checkbox" value="restaurant"
+                       onchange="togglePlaceType('restaurant', this.checked)" checked>
+                <label for="restaurant">Restaurants</label>
+
+                <input name="placeType" id="museum" type="checkbox" value="museum"
+                       onchange="togglePlaceType('museum', this.checked)">
+                <label for="museum">Museums</label>
+
+                <input name="placeType" id="bar" type="checkbox" value="bar"
+                       onchange="togglePlaceType('bar', this.checked)">
+                <label for="bar">Bars</label>
+
+                <input name="placeType" id="gas_station" type="checkbox" value="gas_station"
+                       onchange="togglePlaceType('gas_station', this.checked)">
+                <label for="gas_station">Fuel</label>
+
+                <input name="placeType" id="hotel" type="checkbox" value="hotel"
+                       onchange="togglePlaceType('hotel', this.checked)">
+                <label for="hotel">Hotels</label>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="infoPanel" class="hidden">
-    <button id="closePanel">X</button>
-    <div id="infoPanelContent"></div>
-</div>
-
-<div>
-<!--fix later-->
-    <button><i class=material-icons onclick=calculateRoute("DRIVING")>Car</i></button>
-    <button><i class=material-icons onclick=calculateRoute("TRANSIT")>Bus</i></button>
-    <button><i class=material-icons onclick=calculateRoute("BICYCLING")>Bike</i></button>
-    <button><i class=material-icons onclick=calculateRoute("WALKING")>Walk</i></button>
-</div>
-<h1 id=transport-mode>Driving</h1>
-<!--<details id=directions><summary>Directions</summary></details>-->
-
-<!-- Google Maps -->
-<script src=https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker&libraries=places></script>
-<div id="footer">
+<div id="ch_footer">
     text go here for footer
 </div>
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker&libraries=places"></script>
 </body>
 </html>

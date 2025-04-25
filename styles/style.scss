@@ -7,51 +7,85 @@ body {
   min-height: 100%;
 }
 
-#header {
+#ch_header {
+  background-color: green;
+  color: white;
+  padding: 5px 20px;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 4px solid #FFD700;
+
+  #google_translate_element {
+    margin-left: auto;
+    transform: scale(0.8); // Shrinks the entire widget
+    transform-origin: top right;
+    font-size: 0.8rem;
+
+    select {
+      padding: 3px 5px;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
+
+  }
+  a {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 4px;
+
+    img {
+      height: 100px;
+      width: auto;
+      max-width: 100%;
+
+      @media (max-width: 768px) {
+        height: 40px;
+      }
+    }
+
+    &:hover {
+      transform: scale(1.05);
+      transition: transform 0.2s ease;
+    }
+  }
+}
+
+#ch_footer {
   background-color: green;
   color: white;
   padding: 30px;
   text-align: center;
   width: 100%;
   box-sizing: border-box;
+  border-top: 4px solid #FFD700;
 }
 
-#footer {
-  background-color: green;
-  color: white;
-  padding: 30px;
-  text-align: center;
+#ch_mainContent {
+  display: flex;
   width: 100%;
-  box-sizing: border-box;
-  margin-top: auto; // pushes footer to bottom
-}
-
-#content {
-  text-align: center;
-  padding: 20px;
-}
-
-#map-container {
-  position: relative;
-  width: 600px;
-  height: 600px;
+  max-width: 1250px;
   margin: 20px 0;
 }
 
-#map-container {
+#ch_mapContainer {
   position: relative;
   width: 900px;
   height: 600px;
-  margin: 20px 0;
+  margin-left: 20px;
 }
 
-#map {
+#ch_map {
   width: 100%;
   height: 100%;
   border: thin solid #ccc;
 }
 
-#map-controls {
+#ch_mapControls {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -65,68 +99,87 @@ body {
   align-items: center;
 }
 
-.placeTypes {
+.ch_placeTypes {
   display: flex;
   gap: 8px;
   align-items: center;
+
+  label {
+    font-size: 12px;
+    margin-right: 4px;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 8px;
+  }
 }
 
-.placeTypes label {
-  font-size: 12px;
-  margin-right: 4px;
-}
-
-.placeTypes input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-
-//temp
-#controlPanel
-{
+#ch_controlPanel {
   background-color: #fff;
-  margin-bottom:50px;
+  margin-bottom: 50px;
 }
 
-#directions
-{
-  width:100%;
-  margin:0px;
-  margin-top:20px;
-  margin-bottom:50px;
+#ch_directions {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 50px;
 }
 
-.selectLocationLabel
-{
-  font-weight:bold;
-  min-width:40px;
-  display:inline-block;
+.ch_selectLocationLabel {
+  font-weight: bold;
+  min-width: 40px;
+  display: inline-block;
 }
 
-#infoPanel {
-  position: fixed;
-  top: 0;
-  left: -400px; // hide by default
+.ch_infoPanelTabs {
+  display: flex;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ccc;
+  position: relative;
+  padding: 0;
+}
+
+.ch_tabButton {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #e0e0e0;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+
+  &.active {
+    background-color: white;
+    border-bottom: 2px solid green;
+  }
+}
+
+.ch_tabContent {
+  display: none;
+  padding-top: 10px;
+
+  &.visible {
+    display: block;
+  }
+}
+
+#ch_infoPanel {
   width: 350px;
-  height: 100%;
+  height: 600px;
   background-color: white;
   box-shadow: 4px 0 12px rgba(0,0,0,0.2);
   overflow-y: auto;
-  transition: left 0.3s ease;
-  z-index: 1000;
   padding: 20px;
+  border: thin solid #ccc;
 }
 
-#infoPanel.visible {
-  left: 0;
-}
-
-#closePanelBtn {
+#ch_closePanel {
   position: absolute;
-  top: 10px;
   right: 10px;
-  font-size: 24px;
+  top: 10px;
   background: none;
   border: none;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 }
