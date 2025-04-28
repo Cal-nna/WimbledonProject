@@ -194,20 +194,23 @@ body {
   }
 
   #ch_mainContent {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: column !important;
+    align-items: center;      
   }
 
-  #ch_infoPanel {
-    width: 90%;
-    height: auto;
-    margin-bottom: 20px;
-  }
-
+  /* Map goes on top */
   #ch_mapContainer {
-    width: 90%;
-    height: 300px;
-    margin-left: 0;
+    order: 1;
+    width: 90% !important;    
+    margin: 0 auto 20px;      
+    height: 300px;            
+  }
+
+  /* Info panel (with the driving directions) underneath */
+  #ch_infoPanel {
+    order: 2;
+    width: 90% !important;
+    margin: 0 auto;          
   }
 
   #ch_mapControls {
@@ -230,6 +233,7 @@ body {
     max-height: none !important;  
     overflow: visible !important; 
   }
+  
 }
 
 // Tablet Responsiveness
@@ -239,20 +243,25 @@ body {
   }
 
   #ch_mainContent {
-    flex-direction: column;
-    align-items: center;
+    display: flex;               // ensure flex
+    flex-direction: column;      // stack vertically
+    align-items: center;         // center both panels
   }
 
-  #ch_infoPanel {
-    width: 80%;
-    height: auto;
-    margin-bottom: 20px;
-  }
-
+  // map first
   #ch_mapContainer {
-    width: 80%;
-    height: 400px;
-    margin-left: 0;
+    order: 1;                    // put map on top
+    width: 80% !important;       // full-ish width
+    height: 400px;               // existing tablet height
+    margin: 0 auto 20px;         // center + space below
+  }
+
+  // directions/info below
+  #ch_infoPanel {
+    order: 2;                    // comes after map
+    width: 80% !important;
+    height: auto;
+    margin: 0 auto 20px;         // center + space below
   }
 
   #ch_mapControls {
@@ -262,5 +271,6 @@ body {
     gap: 10px;
   }
 }
+
 
 
