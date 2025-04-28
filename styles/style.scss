@@ -4,75 +4,186 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
-#header {
+#ch_header {
   background-color: green;
   color: white;
-  padding: 30px;
+  padding: 5px 20px;
   text-align: center;
   width: 100%;
-  box-sizing: border-box;
-}
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 4px solid #FFD700;
 
-#footer {
-  background-color: green;
-  color: white;
-  padding: 30px;
-  text-align: center;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: auto; // pushes footer to bottom
-}
+  #google_translate_element {
+    margin-left: auto;
+    transform: scale(0.8); // Shrinks the entire widget
+    transform-origin: top right;
+    font-size: 0.8rem;
 
-#content {
-  text-align: center;
-  padding: 20px;
-}
+    select {
+      padding: 3px 5px;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
 
-//TEMP CHANGE LATER - derek notes
-#map {
-  width: 600px;
-  height: 600px;
-  border: thin solid #ccc;
-  margin: 20px 0;
-}
+  }
+  a {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 4px;
 
-#dkitContent {
-  width: 200px;
-  height: 300px;
+    img {
+      height: 100px;
+      width: auto;
+      max-width: 100%;
 
-  img {
-    clear: both;
-    float: left;
-    width: 150px;
-    border-radius: 100px;
-    margin: 20px;
-    margin-top: 0px;
-    border: thin solid red;
+      @media (max-width: 768px) {
+        height: 40px;
+      }
+    }
+
+    &:hover {
+      transform: scale(1.05);
+      transition: transform 0.2s ease;
+    }
   }
 }
 
-//temp
-#controlPanel
-{
+#ch_footer {
+  background-color: green;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 4px solid #FFD700;
+}
+
+#ch_mainContent {
+  display: flex;
+  width: 100%;
+  max-width: 1250px;
+  margin: 20px 0;
+}
+
+#ch_mapContainer {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  margin-left: 20px;
+}
+
+#ch_map {
+  width: 100%;
+  height: 100%;
+  border: thin solid #ccc;
+  z-index: 1; //chatgpt to fix an error that wont allow clicking on other tabs
+}
+
+#ch_mapControls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.ch_placeTypes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  label {
+    font-size: 12px;
+    margin-right: 4px;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 8px;
+  }
+}
+
+#ch_controlPanel {
   background-color: #fff;
-  margin-bottom:50px;
+  margin-bottom: 50px;
 }
 
-#directions
-{
-  width:100%;
-  margin:0px;
-  margin-top:20px;
-  margin-bottom:50px;
+#ch_directions {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 50px;
 }
 
-.selectLocationLabel
-{
-  font-weight:bold;
-  min-width:40px;
-  display:inline-block;
+.ch_selectLocationLabel {
+  font-weight: bold;
+  min-width: 40px;
+  display: inline-block;
 }
+
+.ch_infoPanelTabs {
+  display: flex;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ccc;
+  position: relative;
+  padding: 0;
+}
+
+.ch_tabButton {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #e0e0e0;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+
+  &.active {
+    background-color: white;
+    border-bottom: 2px solid green;
+  }
+}
+
+.ch_tabContent {
+  display: none;
+  padding-top: 10px;
+
+  &.visible {
+    display: block;
+  }
+}
+
+#ch_infoPanel {
+  width: 350px;
+  height: 600px;
+  background-color: white;
+  box-shadow: 4px 0 12px rgba(0,0,0,0.2);
+  overflow-y: auto;
+  padding: 20px;
+  border: thin solid #ccc;
+  z-index: 2;
+}
+
+#ch_closePanel {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
 
