@@ -83,6 +83,7 @@ body {
   width: 100%;
   height: 100%;
   border: thin solid #ccc;
+  z-index: 1; //chatgpt to fix an error that wont allow clicking on other tabs
 }
 
 #ch_mapControls {
@@ -171,6 +172,7 @@ body {
   overflow-y: auto;
   padding: 20px;
   border: thin solid #ccc;
+  z-index: 2;
 }
 
 #ch_closePanel {

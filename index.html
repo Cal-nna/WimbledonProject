@@ -55,17 +55,26 @@
 
             clearMarkers();
 
+            const noneSelected = document.getElementById('none').checked;
+            if (noneSelected) {
+                console.log("No place types selected (None checked).");
+                return;
+            }
+
             const selectedTypes = Array.from(document.querySelectorAll('.ch_placeTypes input[type="checkbox"]:checked'))
                 .map(cb => cb.value);
 
+
             selectedTypes.forEach(type => {
-                displayNearbyPlaces(type, latLng); // Notice: NO clearing inside displayNearbyPlaces!
+                displayNearbyPlaces(type, latLng);
             });
 
-
-            map.panTo(new google.maps.LatLng(latLng.lat, latLng.lng));
+            map.panTo(latLng);
         });
+
     }
+
+
 
     function clearMarkers() {
         markers.forEach(marker => marker.setMap(null));
@@ -249,19 +258,25 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        const tabButtons = document.querySelectorAll(".ch_tabButton");
-        const tabContents = document.querySelectorAll(".ch_tabContent");
+        const noneCheckbox = document.getElementById('none');
+        const otherCheckboxes = Array.from(document.querySelectorAll('.ch_placeTypes input[type="checkbox"]')).filter(cb => cb.id !== 'none');
 
-        tabButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                tabButtons.forEach(b => b.classList.remove("active"));
-                tabContents.forEach(tab => tab.classList.remove("visible"));
-
-                btn.classList.add("active");
-                document.getElementById(btn.dataset.tab).classList.add("visible");
-            });
+        noneCheckbox.addEventListener('change', () => {
+            if (noneCheckbox.checked) {
+                // Uncheck and disable other checkboxes
+                otherCheckboxes.forEach(cb => {
+                    cb.checked = false;
+                    cb.disabled = true;
+                });
+            } else {
+                // Enable other checkboxes
+                otherCheckboxes.forEach(cb => {
+                    cb.disabled = false;
+                });
+            }
         });
     });
+
 
     function showInfoPanel(content) {
         document.getElementById("ch_infoPanel").classList.add("visible");
@@ -319,8 +334,13 @@
                 <span class="ch_selectLocationLabel">End:</span>
                 <input id="end" type="text"><br><br>
 
+
                 <input type="button" onclick="calculateRoute()" id="submit" value="Submit">
             </div>
+
+
+
+
             <div>
                 <button onclick="calculateRoute('DRIVING')">Car</button>
                 <button onclick="calculateRoute('TRANSIT')">Bus</button>
