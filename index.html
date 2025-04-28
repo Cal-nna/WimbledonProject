@@ -240,10 +240,24 @@
         const start = document.getElementById("start").value;
         const end = document.getElementById("end").value;
 
+        // Collect all waypoints
+        const waypoints = [];
+        const waypointInputs = document.querySelectorAll('.waypoint-row input');
+        waypointInputs.forEach(input => {
+            if (input.value) {
+                waypoints.push({
+                    location: input.value,
+                    stopover: true
+                });
+            }
+        });
+
         const request = {
             origin: start,
             destination: end,
-            travelMode: travelMode
+            waypoints: waypoints,
+            travelMode: travelMode,
+            optimizeWaypoints: true
         };
 
         directionsService.route(request, (route, status) => {
@@ -304,12 +318,26 @@
         }, 'ch_googleTranslateElement');
     }
 
-    function addWaypoint() {
+    function addWaypoint() {//chatgpt assisted with implementing remove button for extra stops
         const container = document.getElementById("waypointsContainer");
+        const waypointDiv = document.createElement("div");
+        waypointDiv.className = "waypoint-row";
+
         const input = document.createElement("input");
         input.type = "text";
         input.classList.add("waypoint");
-        container.appendChild(input);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "X";
+        removeBtn.className = "remove-waypoint";
+        removeBtn.onclick = function() {
+            container.removeChild(waypointDiv);
+        };
+
+        waypointDiv.appendChild(input);
+        waypointDiv.appendChild(removeBtn);
+        container.appendChild(waypointDiv);
+
         new google.maps.places.Autocomplete(input);
     }
 </script>
