@@ -1,5 +1,10 @@
 //NOTE: Order tag found and learnt on W3 Schools: https://www.w3schools.com/cssref/css3_pr_order.php
 //Aswell as !important tag: https://www.w3schools.com/css/css_important.asp
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   margin: 0;
@@ -74,6 +79,7 @@ body {
 
 #ch_mainContent {
   display: flex;
+  flex:1;
   width: 100%;
   max-width: 1250px;
   margin: 20px 0;
@@ -111,16 +117,20 @@ body {
 
 .ch_placeTypes {
   display: flex;
-  gap: 8px;
+  flex-wrap:wrap;
+  gap: 12px;
   align-items: center;
 
   label {
     font-size: 12px;
+    display: flex;
+    align-items: center;
     margin-right: 4px;
   }
 
   input[type="checkbox"] {
     margin-right: 8px;
+    transform: scale(1.1);
   }
 }
 
@@ -312,6 +322,14 @@ body {
 
 // Mobile Responsiveness
 @media (max-width: 499px) {
+
+  html, body {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden;
+  }
+
   body {
     padding: 10px;
     flex-direction: column;
@@ -355,13 +373,16 @@ body {
     max-height: none !important;
     overflow: visible !important;
   }
-
 }
 
 // Tablet Responsiveness
 @media (min-width: 500px) and (max-width: 999px) {
-  body {
-    padding: 15px;
+
+  html, body {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden;
   }
 
   #ch_mainContent {
