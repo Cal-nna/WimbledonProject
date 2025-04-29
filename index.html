@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wimbledon</title>
+    <link href=https://fonts.googleapis.com/icon?family=Material+Icons rel=stylesheet>
 </head>
 
 <script type="text/javascript">
@@ -16,6 +17,7 @@
     let jsonLocationMarkers = [];
     let directionsRenderer = null;
     let directionsService = null;
+    let attractionMarkers = [];
 
     // Load Map
     function loadMap() {
@@ -235,15 +237,117 @@
         jsonLocationMarkers = [];
     }
 
+    function loadAndShowAttractions() {
+        clearAttractionMarkers();
+
+        fetch("attractions.json")
+            .then(res => res.json())
+            .then(data => {
+                const attractionsList = document.getElementById("attractionsList");
+                attractionsList.innerHTML = "";
+
+                data.forEach(attraction => {
+                    // Create marker for map
+                    const marker = new google.maps.Marker({
+                        position: { lat: attraction.lat, lng: attraction.lng },
+                        map: map,
+                        icon: attraction.icon ? {
+                            url: attraction.icon,
+                            scaledSize: new google.maps.Size(30, 30)
+                        } : null,
+                        title: attraction.name || "Tourist Attraction"
+                    });
+
+                    attractionMarkers.push(marker);
+
+                    // Create list item for sidebar
+                    const attractionItem = document.createElement("div");
+                    attractionItem.className = "attraction-item";
+
+                    // Handle image path correctly
+                    const imagePath = attraction.img ?
+                        (attraction.img.startsWith('http') ?
+                            attraction.img :
+                            `images/${attraction.img}`) :
+                        null;
+
+                    attractionItem.innerHTML = `
+                    <h3>${attraction.name || "Tourist Attraction"}</h3>
+                    ${imagePath ? `<img src="${imagePath}" class="attraction-image" onerror="this.style.display='none'">` : ""}
+                    <p>${attraction.content || ""}</p>
+                `;
+                    attractionsList.appendChild(attractionItem);
+
+                    // Add click handler for both marker and list item
+                    const clickHandler = () => {
+                        if (attraction.placeId) {
+                            const request = {
+                                placeId: attraction.placeId,
+                                fields: ["name", "formatted_address", "formatted_phone_number", "url", "photos"]
+                            };
+
+                            service.getDetails(request, (placeDetails, status) => {
+                                if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
+                                    const mergedContent = `
+                                    <h2>${placeDetails.name}</h2>
+                                    ${placeDetails.img ? `<img width="100%" src="${place.img}"><br>` : ""}
+                                    <p><strong>Address:</strong><br>${placeDetails.formatted_address?.replaceAll(", ", ",<br>")}</p>
+                                    ${placeDetails.formatted_phone_number ? `<p><strong>Phone:</strong> ${placeDetails.formatted_phone_number}</p>` : ""}
+                                    ${attraction.content ? `<p>${attraction.content}</p>` : ""}
+                                    ${placeDetails.url ? `<p><a href="${placeDetails.url}" target="_blank">View on Google Maps</a></p>` : ""}
+                                `;
+                                    showInfoPanel(mergedContent);
+                                }
+                            });
+                        } else {
+                            const fallbackContent = `
+                            <h2>${attraction.name || "Tourist Attraction"}</h2>
+                            ${attraction.img ? `<img width="50%" src="${attraction.img}"><br>` : ""}
+                            <p>${attraction.content || ""}</p>
+                        `;
+                            showInfoPanel(fallbackContent);
+                        }
+                    };
+
+                    marker.addListener("click", clickHandler);
+                    attractionItem.addEventListener("click", clickHandler);
+                });
+            })
+            .catch(error => {
+                console.error("Error loading attractions:", error);
+                document.getElementById("attractionsList").innerHTML =
+                    "<p class='error-message'>Failed to load attractions. Please try again later.</p>";
+            });
+    }
+
+    function clearAttractionMarkers() {
+        attractionMarkers.forEach(marker => marker.setMap(null));
+        attractionMarkers = [];
+    }
+
     function calculateRoute(travelMode = "DRIVING") {
         document.getElementById("transport-mode").innerHTML = travelMode;
         const start = document.getElementById("start").value;
         const end = document.getElementById("end").value;
 
+        // Collect all waypoints
+        const waypoints = [];
+        const waypointInputs = document.querySelectorAll('.waypoint-row input');
+        waypointInputs.forEach(input => {
+            if (input.value) {
+                waypoints.push({
+                    location: input.value,
+                    stopover: true
+                });
+            }
+        });
+
         const request = {
             origin: start,
             destination: end,
-            travelMode: travelMode
+            waypoints: waypoints,
+            travelMode: travelMode,
+            optimizeWaypoints: true
         };
 
         directionsService.route(request, (route, status) => {
@@ -266,7 +370,8 @@
                 tabContents.forEach(tab => tab.classList.remove("visible"));
 
                 btn.classList.add("active");
-                document.getElementById(btn.dataset.tab).classList.add("visible");
+                const tab = document.getElementById(btn.dataset.tab);
+                tab.classList.add("visible");
             });
         });
 
@@ -304,12 +409,26 @@
         }, 'ch_googleTranslateElement');
     }
 
-    function addWaypoint() {
+    function addWaypoint() {//chatgpt assisted with implementing remove button for extra stops
         const container = document.getElementById("waypointsContainer");
+        const waypointDiv = document.createElement("div");
+        waypointDiv.className = "waypoint-row";
+
         const input = document.createElement("input");
         input.type = "text";
         input.classList.add("waypoint");
-        container.appendChild(input);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "X";
+        removeBtn.className = "remove-waypoint";
+        removeBtn.onclick = function() {
+            container.removeChild(waypointDiv);
+        };
+
+        waypointDiv.appendChild(input);
+        waypointDiv.appendChild(removeBtn);
+        container.appendChild(waypointDiv);
+
         new google.maps.places.Autocomplete(input);
     }
 </script>
@@ -335,24 +454,35 @@
             <div id="ch_infoPanelContent"></div>
         </div>
 
+        <div id="ch_touristTab" class="ch_tabContent">
+            <div id="ch_attractionsPanel">
+                <div class="attraction-controls">
+                    <button onclick="loadAndShowAttractions()">Show All Attractions</button>
+                    <button onclick="clearAttractionMarkers()">Clear Attractions</button>
+                </div>
+                <div id="attractionsList" class="attractions-list"></div>
+            </div>
+        </div>
+
         <div id="ch_directionsTab" class="ch_tabContent">
             <div id="ch_controlPanel">
                 <span class="ch_selectLocationLabel">Start:</span>
                 <input id="start" type="text"><br><br>
 
-                <div id="waypointsContainer"></div>
-                <button type="button" onclick="addWaypoint()">+ Add Stop</button><br><br>
-
                 <span class="ch_selectLocationLabel">End:</span>
                 <input id="end" type="text"><br><br>
 
-                <input type="button" onclick="calculateRoute()" id="submit" value="Submit">
+                <div id="waypointsContainer"></div>
+                <button type="button" onclick="addWaypoint()">+ Add Stop</button><br><br>
+
+                <input type="button" onclick="calculateRoute()" id="submit" value="Go!">
             </div>
             <div>
-                <button onclick="calculateRoute('DRIVING')">Car</button>
-                <button onclick="calculateRoute('TRANSIT')">Bus</button>
-                <button onclick="calculateRoute('BICYCLING')">Bike</button>
-                <button onclick="calculateRoute('WALKING')">Walk</button>
+
+                <button><i class=material-icons onclick=calculateRoute("DRIVING")>directions_car</i></button>
+                <button><i class=material-icons onclick=calculateRoute("TRANSIT")>directions_bus</i></button>
+                <button><i class=material-icons onclick=calculateRoute("BICYCLING")>directions_bike</i></button>
+                <button><i class=material-icons onclick=calculateRoute("WALKING")>directions_walk</i></button>
             </div>
             <h1 id="transport-mode"></h1>
             <div id="ch_directions"></div>
@@ -393,3 +523,12 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB5dBhPCuFK_6J9DsLmrhyNY8C-VhDHaAk&loading=async&callback=loadMap&libraries=marker&libraries=places"></script>
 </body>
 </html>
+
+<!--TO DO
+style info panel (places info, directions, tourist spot) DONE
+style translate in header DONE (incapable of altering?)
+make some responsiveness for the services and map options on phone display
+fix the header and footers DONE
+add more jsons for both tourists and locations
+add to phone
+-->
