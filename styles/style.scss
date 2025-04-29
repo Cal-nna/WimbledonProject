@@ -16,15 +16,16 @@ body {
   padding: 5px 20px;
   text-align: center;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;;
   align-items: center;
   width: 100%;
+  position: relative;
   box-sizing: border-box;
   border-bottom: 4px solid #FFD700;
 
   #google_translate_element {
     margin-left: auto;
-    transform: scale(0.8); // Shrinks the entire widget
+    transform: scale(0.5);
     transform-origin: top right;
     font-size: 0.8rem;
 
@@ -37,6 +38,7 @@ body {
     }
 
   }
+
   a {
     display: inline-block;
     padding: 10px;
