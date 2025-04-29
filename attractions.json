@@ -6,16 +6,16 @@
   "placeId": "ChIJ71vJyTUPdkgRtl2fgGSDI3E",
   "icon": "images/icons/museum.png",
   "content": "<div id=\"museum-content\"><h1>Wimbledon Lawn Tennis Museum</h1><div><p>The world's largest tennis museum, featuring memorabilia, interactive displays, and a VR experience of Centre Court.</p></div></div>",
-  "img": "https://upload.wikimedia.org/wikipedia/commons/7/78/Wimbledon_Lawn_Tennis_Museum.jpg"
+  "img": "https://bookings.wimbledon.com/stadiumtours/images/carousel/carousel-3.jpg"
 },
 {
 "id": "wimbledonCommon",
 "lat": 51.436500,
 "lng": -0.244700,
 "placeId": "ChIJ0w8-CcwIdkgR4VLzkHvx3zw",
-"icon": "images/icons/park.png",
+"icon": "images/icons/womble.png",
 "content": "<div id=\"common-content\"><h1>Wimbledon Common</h1><div><p>A vast open space of woodland and heath, ideal for walking, cycling, and spotting the famous Wombles!</p></div></div>",
-"img": "https://upload.wikimedia.org/wikipedia/commons/9/95/Wimbledon_Common.jpg"
+"img": "https://images.immediate.co.uk/production/volatile/sites/3/2023/01/GettyImages-108874357Group-shot-1f15496.jpg?quality=90&resize=980,654"
 },
 
 {
@@ -25,6 +25,6 @@
 "placeId": "ChIJD-OlCSkPdkgRvSRAYN-21jc",
 "icon": "images/icons/museum.png",
 "content": "<div id=\"windmill-content\"><h1>Wimbledon Windmill</h1><div><p>Historic windmill turned museum, showcasing the history of windmills and local heritage.</p></div></div>",
-"img": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Wimbledon_Windmill_1.jpg"
+"img": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Wimbledon_Windmill.jpg"
 }
 ]

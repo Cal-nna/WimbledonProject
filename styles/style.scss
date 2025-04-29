@@ -28,21 +28,23 @@ body {
   box-sizing: border-box;
   border-bottom: 4px solid #FFD700;
 
-  #google_translate_element {
-    margin-left: auto;
-    transform: scale(0.5);
-    transform-origin: top right;
-    font-size: 0.8rem;
+  #ch_googleTranslateElement {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 5px 10px;
+    gap: 8px;
 
-    select {
-      padding: 3px 5px;
-      font-size: 0.7rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      background-color: #fff;
+    .goog-te-gadget {
+      font-size: 0; // Hide “Powered by” text
     }
 
+    .goog-logo-link,
+    .goog-te-gadget span {
+      display: none !important;
+    }
   }
+}
 
   a {
     display: inline-block;
@@ -64,7 +66,6 @@ body {
       transition: transform 0.2s ease;
     }
   }
-}
 
 #ch_footer {
   background-color: green;

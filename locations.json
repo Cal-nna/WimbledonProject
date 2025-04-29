@@ -178,6 +178,71 @@
     "placeId":"",
     "icon": "images/icons/restaurant.png",
     "img":"https://www.mar-key.com/wp-content/uploads/2023/08/14588-Wimbledon-23-Event-Day-by-NJC-ITB-NJC_2160-e1692090053401.jpg"
+  },
+  {
+  "id": "southvillage",
+  "content": "<div id=\"southvillage-content\"><h1>Southern Village</h1><div id=\"southvillage-content\"><p>This bustling part of the Grounds has several food and drink choices, fan experience options, tech activation and shopping. Or simply relax on a deckchair in front of the large screen.</p></div></div>",
+  "lat": 51.431939113481135,
+  "lng": -0.21324634552001956,
+  "placeId":"",
+  "icon": "images/icons/village.png",
+  "img":"https://www.wimbledon.com/images/pics/large/b_20230704_battlebrits_EW304765-271162_869.jpg"
+  },
+  {
+    "id": "parkside",
+    "content": "<div id=\"parkside-content\"><h1>Parkside</h1><div id=\"parkside-content\"><p>This lively part of the Grounds offers numerous food and drink options, including picnic collection, as well as the No. 1 Court Official Shop.</p></div></div>",
+    "lat": 51.43540045023417,
+    "lng": -0.21383643150329593,
+    "placeId":"",
+    "icon": "images/icons/park.png",
+    "img":"https://upload.wikimedia.org/wikipedia/commons/7/71/AELTCC_Wimbledon_Shop_2017.jpg"
+  },
+  {
+    "id": "toilet1",
+    "content": "<div id=\"toilet1-content\"><h1>Changing Places Toilet</h1><div id=\"toilet1-content\"><p>Toilets provided within the Grounds</p></div></div>",
+    "lat": 51.43485534889799,
+    "lng": -0.21412611007690432,
+    "placeId":"ChIJ8RDan4EPdkgRRT-1JKCF4M0",
+    "icon": "images/icons/toilet.png",
+    "img":"https://zaohoist.com.my/wp-content/uploads/2023/07/Wimbledon-Changing-Places-Inside-04-400x267-1.jpg"
+  },
+  {
+    "id": "parking1",
+    "content": "<div id=\"parking1-content\"><h1>Parking Area</h1><div id=\"parking1-content\"><p>Car parking provided within the Grounds</p></div></div>",
+    "lat": 51.432454150243615,
+    "lng": -0.2150380611419678,
+    "placeId":"",
+    "icon": "images/icons/parking.png",
+    "img":""
+  },
+  {
+    "id": "tealawn",
+    "content": "<div id=\"tealawn-content\"><h1>Tea Lawn</h1><div id=\"tealawn-content\"><p>The heart of the Grounds, the Tea Lawn offers acces to the Museum, Official Shop and the renowned Wingfield Restaurant. Stop for some strawberries and cream!</p></div></div>",
+    "lat": 51.433852077902365,
+    "lng": -0.21288156509399417,
+    "placeId":"",
+    "icon": "images/icons/park.png",
+    "img":"https://www.theexperiencegolf.com/-/media/venue/wimbledon/2024/the-lawn/1920x800-the-lawn-web-images2.jpg?h=800&w=1920&hash=E888CB25688134FAFA051B09E96B44A6&usecustomfunctions=1&centercrop=1"
+  },
+  {
+    "id": "wallgarden",
+    "content": "<div id=\"wallgarden-content\"><h1>Walled Garden</h1><div id=\"wallgarden-content\"><p>A beautiful part of the Grounds offering space to enjoy a wide selection of food and drink options surrounded by Wimbledon's famous floral displays.</p></div></div>",
+    "lat": 51.43478846485044,
+    "lng": -0.21573451064963226,
+    "placeId":"",
+    "icon": "images/icons/sprout.png",
+    "img":"https://www.biotecture.uk.com/content/uploads/Biotecture-Living-Wall-Court-Number-One-Wimbledon-8.jpg"
+  },
+  {
+    "id": "aorangi",
+    "content": "<div id=\"aorangi-content\"><h1>Aorangi</h1><div id=\"aorangi-content\"><p>A place for true tennis fans, Aorangi offers a selection of Official Partner experiences as well as the opportunity to get up close to your favourite players at the Practice Courts.</p></div></div>",
+    "lat": 51.43587866261446,
+    "lng": -0.21457617185261182,
+    "placeId":"",
+    "icon": "images/icons/gold-medal.png",
+    "img":"https://www.wimbledon.com/images/pics/large/b_APavilion_06_06_TL.jpg"
   }
 ]
+
+
 
