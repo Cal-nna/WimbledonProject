@@ -1,9 +1,9 @@
 [
   {
   "id": "wimbledonMuseum",
-  "lat": 51.433337,
-  "lng": -0.213695,
-  "placeId": "ChIJTfwAUEIPdkgRYbc69T_fVXk",
+  "lat": 51.4347875,
+  "lng": -0.2134942563008046,
+  "placeId": "ChIJ71vJyTUPdkgRtl2fgGSDI3E",
   "icon": "images/icons/museum.png",
   "content": "<div id=\"museum-content\"><h1>Wimbledon Lawn Tennis Museum</h1><div><p>The world's largest tennis museum, featuring memorabilia, interactive displays, and a VR experience of Centre Court.</p></div></div>",
   "img": "https://upload.wikimedia.org/wikipedia/commons/7/78/Wimbledon_Lawn_Tennis_Museum.jpg"
@@ -12,25 +12,17 @@
 "id": "wimbledonCommon",
 "lat": 51.436500,
 "lng": -0.244700,
-"placeId": "ChIJKeOpI0AOdkgRtOpOjhr2WPU",
+"placeId": "ChIJ0w8-CcwIdkgR4VLzkHvx3zw",
 "icon": "images/icons/park.png",
 "content": "<div id=\"common-content\"><h1>Wimbledon Common</h1><div><p>A vast open space of woodland and heath, ideal for walking, cycling, and spotting the famous Wombles!</p></div></div>",
 "img": "https://upload.wikimedia.org/wikipedia/commons/9/95/Wimbledon_Common.jpg"
 },
-{
-"id": "wimbledonVillage",
-"lat": 51.427000,
-"lng": -0.219800,
-"placeId": "ChIJbSVq8P8PdkgR_Z4a4EbpJiw",
-"icon": "images/icons/village.png",
-"content": "<div id=\"village-content\"><h1>Wimbledon Village</h1><div><p>A charming area filled with boutique shops, cafes, and historical architecture, reflecting the original heart of Wimbledon.</p></div></div>",
-"img": "https://upload.wikimedia.org/wikipedia/commons/2/27/Wimbledon_Village_High_Street.jpg"
-},
+
 {
 "id": "wimbledonWindmill",
 "lat": 51.432200,
 "lng": -0.244300,
-"placeId": "ChIJY7n1tUYOdkgRlUvtc3ISMFg",
+"placeId": "ChIJD-OlCSkPdkgRvSRAYN-21jc",
 "icon": "images/icons/museum.png",
 "content": "<div id=\"windmill-content\"><h1>Wimbledon Windmill</h1><div><p>Historic windmill turned museum, showcasing the history of windmills and local heritage.</p></div></div>",
 "img": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Wimbledon_Windmill_1.jpg"
