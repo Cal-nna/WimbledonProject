@@ -203,7 +203,7 @@ body {
     margin-top: 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 
-    //chatgpt
+    //chatgpt for &#ch_placesTab, &#ch_touristTab, &#ch_directionsTab
     // Specific styles for different tabs
     &#ch_placesTab, &#ch_touristTab, &#ch_directionsTab {
       height: calc(100% - 20px); // Adjust height to account for padding
@@ -228,7 +228,7 @@ body {
   }
 }
 
-// Update the attractions panel to match
+
 #ch_attractionsPanel {
   background-color: white;
   color: #333;
@@ -345,10 +345,10 @@ body {
     order: 1;
     width: 90% !important;
     margin: 0 auto 20px;
-    height: 300px;
+    height: 500px;
   }
 
-  /* Info panel (with the driving directions) underneath */
+
   #ch_infoPanel {
     order: 2;
     width: 90% !important;
@@ -361,14 +361,14 @@ body {
   }
 
   #ch_directions {
-    position: static !important;  // remove any fixed positioning
+    position: static !important;
     bottom: auto !important;
     left: auto !important;
     right: auto !important;
 
-    order: 999 !important;        // largest order → last in the column
-    width: 100% !important;       // full width
-    margin: 20px 0 0 0 !important; // extra space at the top so it's not overcrowded
+    order: 999 !important;
+    width: 100% !important;
+    margin: 20px 0 0 0 !important;
 
     max-height: none !important;
     overflow: visible !important;
@@ -386,25 +386,26 @@ body {
   }
 
   #ch_mainContent {
-    display: flex;               // ensure flex
-    flex-direction: column;      // stack vertically
-    align-items: center;         // center both panels
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   // map first
   #ch_mapContainer {
-    order: 1;                    // put map on top
-    width: 80% !important;       // full-ish width
-    height: 400px;               // existing tablet height
-    margin: 0 auto 20px;         // center + space below
+    order: 1;
+    width: 80% !important;
+    height: 600px;
+    margin: 0 auto 20px;
   }
+
 
   // directions/info below
   #ch_infoPanel {
-    order: 2;                    // comes after map
+    order: 2;
     width: 80% !important;
     height: auto;
-    margin: 0 auto 20px;         // center + space below
+    margin: 0 auto 20px;
   }
 
     #ch_mapControls {
